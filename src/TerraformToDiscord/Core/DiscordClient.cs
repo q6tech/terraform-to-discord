@@ -108,6 +108,7 @@ namespace TerraformToDiscord.Core
             // https://developer.hashicorp.com/terraform/cloud-docs/api-docs/notification-configurations#run-notification-payload
             return trigger switch
             {
+                "verification" => "Web Hook Test",
                 "run:created" => "Created",
                 "run:planning" => "Planning",
                 "run:needs_attention" => "Needs Attention",
