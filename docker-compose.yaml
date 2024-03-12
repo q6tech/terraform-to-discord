@@ -1,0 +1,9 @@
+version: "2.1"
+services:
+  app:
+    build: .
+    ports:
+      - 5000:5000
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DISCORD__WEBHOOK: https://discord.com/api/webhooks/...

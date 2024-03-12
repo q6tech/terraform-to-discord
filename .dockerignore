@@ -1,0 +1,6 @@
+**/.git/
+**/.vscode/
+**/.github/
+**/README.md
+**/Dockerfile*
+**/docker-compose.yaml

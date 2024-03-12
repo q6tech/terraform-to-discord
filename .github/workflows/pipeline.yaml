@@ -1,0 +1,65 @@
+name: "Build"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+    tags:
+      - "*"
+  workflow_dispatch: {}
+
+jobs:
+  app:
+    permissions:
+      packages: write
+    runs-on: ubuntu-latest
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}/app
+    steps:
+      - name: Detect Version
+        id: generate-version
+        run: |
+          $ref = '${{ github.ref }}'
+          if ($ref.StartsWith('refs/tags/v'))
+          {
+              $version = ($ref -split '/v' | Select-Object -Last 1)
+              $isPublicBuild = $true
+          }
+          else
+          {
+              $version = "0.0.1"
+              $isPublicBuild = $false
+          }
+          Write-Host "Detected version: '$version'."
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "is-public-build=$isPublicBuild" >> $env:GITHUB_OUTPUT
+        shell: pwsh
+
+      - uses: docker/setup-buildx-action@0d103c3126aa41d772a8362f6aa67afac040f80c # v3.1.0
+        with:
+          install: true
+          version: latest
+      - uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
+        id: meta
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ env.BUILD_VERSION }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.BUILD_VERSION }}
+            type=semver,pattern={{major}},value=${{ env.BUILD_VERSION }}
+            type=raw,latest
+      - uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        with:
+          push: ${{ github.event_name != 'pull_request' }}
+          cache-from: ${{ github.actor != 'dependabot[bot]' && format('type=registry,ref={0}:cache', env.IMAGE) || ''}}
+          cache-to: ${{ github.actor != 'dependabot[bot]' && format('type=registry,ref={0}:cache,mode=max', env.IMAGE) || ''}}
+          build-args: |
+            BUILD_VERSION=${{ env.BUILD_VERSION }}
+            IS_PUBLIC_BUILD=${{ env.IS_PUBLIC_BUILD }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
