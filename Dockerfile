@@ -13,7 +13,7 @@ RUN set -xe \
     && dotnet test \
     && dotnet publish /source/src/TerraformToDiscord/TerraformToDiscord.csproj -c Release -o /app
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0.2@sha256:789045ecae51d62d07877994d567eff4442b7bbd4121867898ee7bf00b7241ea AS final
+FROM mcr.microsoft.com/dotnet/aspnet:8.0.3@sha256:9470bf16cb8566951dfdb89d49a4de73ceb31570b3cdb59059af44fe53b19547 AS final
 
 LABEL org.opencontainers.image.authors "Mark Lopez <hello@q6tech.com>"
 
